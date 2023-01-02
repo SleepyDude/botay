@@ -30,8 +30,8 @@ class BotayInfraStack(Stack):
         # Create lambda function for the API
         api = aws_lambda.Function(self, "API",
             runtime=aws_lambda.Runtime.PYTHON_3_9,
-            code=aws_lambda.Code.from_asset('../api/lambda_function.zip'),  # Load lambda from a local disk
-            handler='botay.handler',
+            code=aws_lambda.Code.from_asset('../lambda_function.zip'),  # Load lambda from a local disk
+            handler='app.botay.handler',
             environment={'TABLE_NAME': table.table_name}
         )
 
@@ -52,4 +52,3 @@ class BotayInfraStack(Stack):
 
         # Give lambda permission to read/write to the table
         table.grant_read_write_data(api)
-

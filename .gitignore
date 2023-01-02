@@ -1,3 +1,5 @@
 venv
 **/__pycache__
 **/*.zip
+users.py
+.DS_Store
