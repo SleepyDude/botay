@@ -38,3 +38,15 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Create archive of dependencies
+      run: |
+        set -eux pipefail
+        pip install -t lib -r requirements.txt
+        (cd lib; zip ../lambda_function.zip -r .)
+        zip lambda_function.zip -ur app/.
+        rm -rf lib
+    - name: Upload zip file artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: api
+        path: lambda_function.zip
