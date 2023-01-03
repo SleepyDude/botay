@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 jobs:
-  build:
-
+  test_and_zip:
+    name: Test and collect files to zip
     runs-on: ubuntu-latest
 
     steps:
@@ -48,5 +48,38 @@ jobs:
     - name: Upload zip file artifact
       uses: actions/upload-artifact@v3
       with:
-        name: api
+        name: lambda_function
         path: lambda_function.zip
+
+  deploy_on_aws:
+    name: Deploy on AWS lambda
+    runs-on: ubuntu-latest
+    needs: test_and_zip
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  
+    steps:
+      - name: Install AWS CLI
+        uses: unfor19/install-aws-cli-action@v1
+        with:
+          version: 2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Download lambda lambda_function.zip
+        uses: actions/download-artifact@v3
+        with:
+          name: lambda_function
+      - name: Upload to S3
+        run: aws s3 cp lambda_function.zip s3://cdk-hnb659fds-assets-079202211282-us-east-1/lambda_function.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Deploy new lambda
+        run: aws lambda update-function-code --function-name botay_lambda --s3-bucket cdk-hnb659fds-assets-079202211282-us-east-1 --s3-key lambda_function.zip
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
