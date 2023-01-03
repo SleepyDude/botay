@@ -3,7 +3,11 @@ from mangum import Mangum
 from app.models.link_mod import PutLinkRequest
 from uuid import uuid4
 import os
-import boto3
+
+try:
+    import boto3
+except:
+    pass
 
 app = FastAPI()
 handler = Mangum(app)
